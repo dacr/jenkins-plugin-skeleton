@@ -8,12 +8,18 @@ import hudson.model.AbstractProject;
 import hudson.tasks.Builder;
 import hudson.tasks.BuildStepDescriptor;
 import net.sf.json.JSONObject;
+
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.QueryParameter;
 
 import javax.servlet.ServletException;
+
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.UnsupportedEncodingException;
 
 /**
  * Sample {@link Builder}.
@@ -48,7 +54,27 @@ public class HelloWorldBuilder extends Builder {
     public String getName() {
         return name;
     }
-
+    public static String slurp(final InputStream is, final int bufferSize)
+    {
+      final char[] buffer = new char[bufferSize];
+      final StringBuilder out = new StringBuilder();
+      try {
+    	  Reader in = new InputStreamReader(is, "UTF-8");
+        for (;;) {
+          int rsz = in.read(buffer, 0, buffer.length);
+          if (rsz < 0)
+            break;
+          out.append(buffer, 0, rsz);
+        }
+      }
+      catch (UnsupportedEncodingException ex) {
+        /* ... */
+      }
+      catch (IOException ex) {
+          /* ... */
+      }
+      return out.toString();
+    }
     @Override
     public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) {
         // This is where you 'build' the project.
@@ -59,6 +85,13 @@ public class HelloWorldBuilder extends Builder {
             listener.getLogger().println("Bonjour, "+name+"!");
         else
             listener.getLogger().println("Hello, "+name+"!");
+        try {
+          Process proc = Runtime.getRuntime().exec("/usr/bin/ls /");
+          java.io.InputStream in = proc.getInputStream();
+          listener.getLogger().println(slurp(in, 1024));
+        } catch(Exception e) {
+        	
+        }
         return true;
     }
 
