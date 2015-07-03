@@ -41,11 +41,13 @@ import java.io.UnsupportedEncodingException;
 public class HelloWorldBuilder extends Builder {
 
     private final String name;
+    private final String command;
 
     // Fields in config.jelly must match the parameter names in the "DataBoundConstructor"
     @DataBoundConstructor
-    public HelloWorldBuilder(String name) {
+    public HelloWorldBuilder(String name, String command) {
         this.name = name;
+        this.command = command;
     }
 
     /**
@@ -54,6 +56,12 @@ public class HelloWorldBuilder extends Builder {
     public String getName() {
         return name;
     }
+
+    public String getCommand() {
+        return command;
+    }
+
+    
     public static String slurp(final InputStream is, final int bufferSize)
     {
       final char[] buffer = new char[bufferSize];
@@ -86,12 +94,16 @@ public class HelloWorldBuilder extends Builder {
         else
             listener.getLogger().println("Hello, "+name+"!");
         try {
-          Process proc = Runtime.getRuntime().exec("/usr/bin/ls /");
+          Process proc = Runtime.getRuntime().exec(getCommand());
           java.io.InputStream in = proc.getInputStream();
+          java.io.InputStream err = proc.getErrorStream();
           listener.getLogger().println(slurp(in, 1024));
+          listener.getLogger().println(slurp(err, 1024));
         } catch(Exception e) {
-        	
+          e.printStackTrace(listener.getLogger());
+          return false;
         }
+        //build.setResult();
         return true;
     }
 
@@ -151,6 +163,13 @@ public class HelloWorldBuilder extends Builder {
             return FormValidation.ok();
         }
 
+        public FormValidation doCheckCommand(@QueryParameter String value)
+                throws IOException, ServletException {
+            if (value.trim().length() == 0)
+                return FormValidation.error("Please set a command");
+            return FormValidation.ok();
+        }
+        
         public boolean isApplicable(Class<? extends AbstractProject> aClass) {
             // Indicates that this builder can be used with all kinds of project types 
             return true;

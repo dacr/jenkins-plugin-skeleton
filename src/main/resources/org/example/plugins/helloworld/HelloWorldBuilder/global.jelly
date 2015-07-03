@@ -13,7 +13,7 @@
     so it should be straightforward to find them.
   -->
   <f:section title="Hello World Builder">
-    <f:entry title="French" field="useFrench"
+    <f:entry title="En francais ?" field="useFrench"
       description="Check if we should say hello in French">
       <f:checkbox />
     </f:entry>
